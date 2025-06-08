@@ -1,4 +1,4 @@
-from os import listdir, path
+from os import path
 from csv import reader as csv_reader
 from re import fullmatch
 from psycopg2 import connect
@@ -59,9 +59,13 @@ def get_column_types(sample_row):
     return types
 
 
-def ensure_six_types(types):
+def ensure_n_types(types, n):
+    """Ensure that there are at least n unique types in the list.
+    If there are not enough unique types, replace some with predefined types.
+    Returns a list of types with at least n unique types.
+    """
     unique = set(types)
-    if len(unique) >= 6:
+    if len(unique) >= n:
         return types
 
     replacements = {
@@ -74,7 +78,7 @@ def ensure_six_types(types):
     updated_types = types.copy()
     type_encountered = set()
     for i, t in enumerate(updated_types):
-        if len(set(updated_types)) >= 6:
+        if len(set(updated_types)) >= n:
             break
 
         if t in type_encountered and t in replacements:
@@ -87,13 +91,17 @@ def ensure_six_types(types):
 
 
 def create_table_from_csv(csv_path, conn):
-    table_name = path.splitext(path.basename(csv_path))[0]
+    """Create a PostgreSQL table from a CSV file.
+    The table name is derived from the CSV file name.
+    The columns are created based on the headers and sample row types.
+    """
+    table_name = "items"
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv_reader(f)
         headers = next(reader)
         sample_row = next(reader)
         types = get_column_types(sample_row)
-        types = ensure_six_types(types)
+        types = ensure_n_types(types, 3)
 
         columns = ', '.join([f'"{h}" {t}' for h, t in zip(headers, types)])
         create_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" ({columns});'
@@ -106,7 +114,11 @@ def create_table_from_csv(csv_path, conn):
 
 
 def add_values_to_table(csv_path, conn):
-    table_name = path.splitext(path.basename(csv_path))[0]
+    """Insert values from a CSV file into a PostgreSQL table.
+    The table name is derived from the CSV file name.
+    The values are inserted row by row, with None for empty strings.
+    """
+    table_name = "items"
 
     # Compter les lignes (moins l'entête)
     with open(csv_path, newline='', encoding='utf-8') as f:
@@ -133,6 +145,10 @@ def add_values_to_table(csv_path, conn):
 
 
 def main():
+    """Main function to connect to PostgreSQL and process the CSV file.
+    Connects to the database, creates a table from the CSV file,
+    and inserts the values into the table.
+    """
     postgre_connexion = {
         'host': 'localhost',
         'port': 5432,
@@ -140,16 +156,16 @@ def main():
         'user': 'mservage',
         'password': 'mysecretpassword'
     }
-    csv_folder = '../customer'
+    csv_folder = "../item"
     # ** unpack the dictionary to pass as keyword arguments*
     # **postgre_connexion reviens a host=localhost, port=5432, ...
     conn = connect(**postgre_connexion)
-    for file in listdir(csv_folder):
-        full_path = path.join(csv_folder, file)
-        if not path.isfile(full_path) or not file.endswith('.csv'):
-            continue
-        create_table_from_csv(full_path, conn)
-        add_values_to_table(full_path, conn)
+    full_path = path.join(csv_folder, "item.csv")
+    if not path.isfile(full_path):
+        print("Erreur file doesn't exist")
+        return
+    create_table_from_csv(full_path, conn)
+    add_values_to_table(full_path, conn)
     conn.close()
 
 

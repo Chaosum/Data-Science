@@ -1,8 +1,9 @@
 from os import listdir, path
 from csv import reader as csv_reader
-import re
+from re import fullmatch
 from psycopg2 import connect
 from datetime import datetime
+from tqdm import tqdm
 
 
 def get_postgre_type(value):
@@ -34,7 +35,7 @@ def get_postgre_type(value):
         pass
     if value.lower() in ['true', 'false']:
         return 'BOOLEAN'
-    if re.fullmatch(
+    if fullmatch(
             r'[a-fA-F0-9]{8}-([a-fA-F0-9]{4}-){3}[a-fA-F0-9]{12}',
             value
             ):
@@ -59,6 +60,11 @@ def get_column_types(sample_row):
 
 
 def ensure_six_types(types):
+    """Ensure that the list of types contains at least six unique types.
+    If there are fewer than six unique types, replace some types
+    with predefined types to ensure diversity.
+    Returns a list of types with at least six unique types.
+    """
     unique = set(types)
     if len(unique) >= 6:
         return types
@@ -86,6 +92,10 @@ def ensure_six_types(types):
 
 
 def create_table_from_csv(csv_path, conn):
+    """Create a PostgreSQL table from a CSV file.
+    Drops the table if it exists and creates a \
+    new one based on the CSV headers.
+    """
     table_name = path.splitext(path.basename(csv_path))[0]
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv_reader(f)
@@ -97,12 +107,48 @@ def create_table_from_csv(csv_path, conn):
         columns = ', '.join([f'"{h}" {t}' for h, t in zip(headers, types)])
         create_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" ({columns});'
         with conn.cursor() as cur:
+            print(f"Dropping table '{table_name}' if it exists...")
             cur.execute(f'DROP TABLE IF EXISTS "{table_name}";')
+            print(f"Creating table '{table_name}'...")
             cur.execute(create_sql)
         conn.commit()
 
 
+def add_values_to_table(csv_path, conn):
+    """Insert values from a CSV file into a PostgreSQL table.
+    The table name is derived from the CSV file name.
+    """
+    table_name = path.splitext(path.basename(csv_path))[0]
+
+    # Compter les lignes (moins l'entête)
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        total_lines = sum(1 for _ in f) - 1
+
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv_reader(f)
+        headers = next(reader)
+        placeholders = ', '.join(['%s'] * len(headers))
+        insert_sql = f'INSERT INTO "{table_name}" \
+            ({", ".join(headers)}) VALUES ({placeholders});'
+
+        with conn.cursor() as cur:
+            for row in tqdm(
+                reader, total=total_lines,
+                desc=f"Inserting into {table_name}"
+            ):
+                cleaned_row = [v if v.strip() != '' else None for v in row]
+                try:
+                    cur.execute(insert_sql, cleaned_row)
+                except Exception as e:
+                    print(f"Error inserting row: {cleaned_row} {e}")
+        conn.commit()
+
+
 def main():
+    """Main function to process CSV files and create PostgreSQL tables.
+    Connects to PostgreSQL, reads CSV files from a folder,
+    creates tables, and inserts values.
+    """
     postgre_connexion = {
         'host': 'localhost',
         'port': 5432,
@@ -119,7 +165,7 @@ def main():
         if not path.isfile(full_path) or not file.endswith('.csv'):
             continue
         create_table_from_csv(full_path, conn)
-        break  # according to the subject, we only need to process one CSV file
+        add_values_to_table(full_path, conn)
     conn.close()
 
 
