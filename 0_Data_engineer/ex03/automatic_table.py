@@ -115,33 +115,31 @@ def create_table_from_csv(csv_path, conn):
 
 
 def add_values_to_table(csv_path, conn):
-    """Insert values from a CSV file into a PostgreSQL table.
-    The table name is derived from the CSV file name.
     """
+Inserts data from a CSV file into a PostgreSQL table.
+The table name is inferred from the CSV file name (without extension).
+Assumes the table already exists in the database and matches the CSV structure.
+Skips the header row of the CSV file.
+Args:
+    csv_path (str): Path to the CSV file containing the data to insert.
+    conn (psycopg2.connection): Active connection to the PostgreSQL database.
+Raises:
+    psycopg2.DatabaseError: If an error occurs during the database operation.
+    FileNotFoundError: If the specified CSV file does not exist.
+    """
+
     table_name = path.splitext(path.basename(csv_path))[0]
-
-    # Compter les lignes (moins l'entête)
-    with open(csv_path, newline='', encoding='utf-8') as f:
-        total_lines = sum(1 for _ in f) - 1
-
-    with open(csv_path, newline='', encoding='utf-8') as f:
-        reader = csv_reader(f)
-        headers = next(reader)
-        placeholders = ', '.join(['%s'] * len(headers))
-        insert_sql = f'INSERT INTO "{table_name}" \
-            ({", ".join(headers)}) VALUES ({placeholders});'
-
-        with conn.cursor() as cur:
-            for row in tqdm(
-                reader, total=total_lines,
-                desc=f"Inserting into {table_name}"
-            ):
-                cleaned_row = [v if v.strip() != '' else None for v in row]
-                try:
-                    cur.execute(insert_sql, cleaned_row)
-                except Exception as e:
-                    print(f"Error inserting row: {cleaned_row} {e}")
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            next(f)  # skip header
+            with conn.cursor() as cur:
+                cur.copy_expert(f"""
+                    COPY "{table_name}" \
+    FROM STDIN WITH (FORMAT csv, HEADER false, NULL '', DELIMITER ',')
+                """, f)
         conn.commit()
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def main():
