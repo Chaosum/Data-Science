@@ -2,13 +2,10 @@ from psycopg2 import connect
 
 
 def main():
-    """Fusion des données de la table 'items' dans 'customers'.
-    Cette fonction ajoute les colonnes manquantes dans 'customers'
-    si elles n'existent pas,
-    puis copie les données de 'items' dans 'customers' en fonction
-    de la correspondance
-    des 'product_id'. Les colonnes ajoutées sont 'category_id',
-    'category_code' et 'brand'.
+    """Merges data from the 'items' table into 'customers'.
+    This function adds missing columns to 'customers' if they do not exist,
+    then copies data from 'items' to 'customers' based on matching 'product_id'.
+    The columns added are 'category_id', 'category_code', and 'brand'.
     """
     conn = connect(
         dbname="piscineds",
@@ -18,7 +15,7 @@ def main():
     )
     cur = conn.cursor()
 
-    print("Ajout des colonnes manquantes dans 'customers'...")
+    print("Adding missing columns to 'customers'...")
     cur.execute("""
         DO $$
         BEGIN
@@ -41,7 +38,7 @@ def main():
         $$;
     """)
 
-    print("Fusion des données depuis 'items' dans 'customers'...")
+    print("Fusion of data from 'items' into 'customers'...")
     cur.execute("""
         UPDATE customers
         SET category_id = items.category_id,
@@ -54,7 +51,7 @@ def main():
     conn.commit()
     cur.close()
     conn.close()
-    print("Fusion réussie : colonnes ajoutées et données copiées.")
+    print("Fusion successful: columns added and data copied.")
 
 
 if __name__ == "__main__":

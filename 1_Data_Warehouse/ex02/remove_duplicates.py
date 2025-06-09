@@ -5,21 +5,24 @@ from os import remove
 
 
 def main():
-    """    Nettoyage des doublons dans la table 'customers' de PostgreSQL.
-    Cette fonction lit les données de la table, supprime les doublons exacts,
-    puis supprime les doublons basés sur les colonnes 'product_id','event_type'
-    et 'event_time' si elles sont identiques à ±1 seconde.
-    Les données nettoyées sont ensuite insérées dans la table 'customers' en
-    utilisant la méthode COPY de psycopg2 pour une insertion efficace.
+    """Remove duplicates from the 'customers' table in PostgreSQL.
+    It reads the data,
+    removes duplicates based on 'event_time' and other columns,
+    and then writes the cleaned data back to the table.
+    The script assumes that the 'event_time' column is in datetime format.
     """
 
     engine = create_engine(
         "postgresql://mservage:mysecretpassword@localhost:5432/piscineds"
     )
 
-    print("Lecture de la table 'customers'...")
-    df = read_sql("SELECT * FROM customers", engine)
-    print(f"Lignes initiales : {len(df)}")
+    print("Reading data from customers table...")
+    query = """
+    SELECT *
+    FROM customers
+    """
+    df = read_sql(query, engine)
+    print(f"Initial rows: {len(df)}")
 
     df = df.drop_duplicates()
 
@@ -33,8 +36,8 @@ def main():
     removed = mask.sum()
 
     df = df[~mask].reset_index(drop=True)
-    print(f"Lignes supprimées à ±1s : {removed}")
-    print(f"Lignes finales : {len(df)}")
+    print(f"Rows removed within ±1s: {removed}")
+    print(f"Final rows: {len(df)}")
     df.to_csv("temp_customers.csv", index=False, header=False)
     with connect(
         host='localhost',
@@ -44,7 +47,7 @@ def main():
         password='mysecretpassword'
     ) as connexion:
         with connexion.cursor() as cur:
-            print("TRUNCATE + COPY dans PostgreSQL...")
+            print("TRUNCATE + COPY into PostgreSQL...")
             cur.execute("TRUNCATE TABLE customers;")
             with open("temp_customers.csv", 'r', encoding='utf-8') as f:
                 cur.copy_expert("""
@@ -52,7 +55,7 @@ def main():
                 """, f)
             connexion.commit()
     remove("temp_customers.csv")
-    print("✅ Données nettoyées et insérées avec succès.")
+    print("✅ Data cleaned and inserted successfully.")
 
 
 if __name__ == '__main__':

@@ -115,32 +115,29 @@ def create_table_from_csv(csv_path, conn):
 
 def add_values_to_table(csv_path, conn):
     """Insert values from a CSV file into a PostgreSQL table.
-    The table name is derived from the CSV file name.
-    The values are inserted row by row, with None for empty strings.
+    Uses the COPY command for efficient bulk insertion.
+    Creates an index on the 'product_id' column after insertion.
     """
     table_name = "items"
-
-    # Compter les lignes (moins l'entête)
-    with open(csv_path, newline='', encoding='utf-8') as f:
-        total_lines = sum(1 for _ in f) - 1
-
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv_reader(f)
         headers = next(reader)
-        placeholders = ', '.join(['%s'] * len(headers))
-        insert_sql = f'INSERT INTO "{table_name}" \
-            ({", ".join(headers)}) VALUES ({placeholders});'
-
         with conn.cursor() as cur:
-            for row in tqdm(
-                reader, total=total_lines,
-                desc=f"Inserting into {table_name}"
-            ):
-                cleaned_row = [v if v.strip() != '' else None for v in row]
-                try:
-                    cur.execute(insert_sql, cleaned_row)
-                except Exception as e:
-                    print(f"Error inserting row: {cleaned_row} {e}")
+            print(f"Copying data into {table_name} using COPY...")
+            f.seek(0)
+            next(f)  # Skip header
+            cur.copy_expert(
+                f"""COPY "{table_name}" ({", ".join(headers)}) \
+                    FROM STDIN \
+                    WITH (FORMAT CSV, NULL '', HEADER FALSE, ENCODING 'UTF8')
+                """,
+                f
+            )
+            print("Création de l'index sur items.product_id...")
+            cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_items_product_id
+            ON items(product_id);
+            """)
         conn.commit()
 
 

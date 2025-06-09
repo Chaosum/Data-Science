@@ -2,6 +2,9 @@ import psycopg2
 
 
 def create_customers_table(conn):
+    """
+    Create a 'customers' table by merging data from existing tables.
+    """
     with conn.cursor() as cur:
         cur.execute("""
             SELECT tablename FROM pg_tables
@@ -25,12 +28,24 @@ def create_customers_table(conn):
             print(f"Inserting data from {table}...")
             cur.execute(f'INSERT INTO customers SELECT * FROM "{table}";')
 
+        print("Création index sur customers.product_id...")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS " +
+            "idx_customers_product_id ON customers(product_id);"
+        )
+        print("Ajout de l'index sur customers(event_time)...")
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_customers_event_time
+            ON customers(event_time);
+        """)
         conn.commit()
         print("Table 'customers' created and populated successfully.")
 
 
 def main():
-
+    """
+    Main function to connect to PostgreSQL and create the 'customers' table.
+    """
     # Connexion à la base de données PostgreSQL
     postgre_connexion = {
         'host': 'localhost',
