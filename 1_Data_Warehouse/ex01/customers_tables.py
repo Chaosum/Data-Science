@@ -38,6 +38,11 @@ def create_customers_table(conn):
             CREATE INDEX IF NOT EXISTS idx_customers_event_time
             ON customers(event_time);
         """)
+        print("Ajout de l'index sur customers...")
+        cur.execute("""
+            CREATE INDEX idx_event_type_product_price
+            ON customers (event_type, product_id, price);
+        """)
         conn.commit()
         print("Table 'customers' created and populated successfully.")
 

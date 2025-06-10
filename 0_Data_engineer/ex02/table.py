@@ -103,24 +103,27 @@ def create_table_from_csv(csv_path, conn):
 
 
 def main():
-    postgre_connexion = {
-        'host': 'localhost',
-        'port': 5432,
-        'dbname': 'piscineds',
-        'user': 'mservage',
-        'password': 'mysecretpassword'
-    }
-    csv_folder = '../customer'
-    # ** unpack the dictionary to pass as keyword arguments*
-    # **postgre_connexion reviens a host=localhost, port=5432, ...
-    conn = connect(**postgre_connexion)
-    for file in listdir(csv_folder):
-        full_path = path.join(csv_folder, file)
-        if not path.isfile(full_path) or not file.endswith('.csv'):
-            continue
-        create_table_from_csv(full_path, conn)
-        break  # according to the subject, we only need to process one CSV file
-    conn.close()
+    try:
+        postgre_connexion = {
+            'host': 'localhost',
+            'port': 5432,
+            'dbname': 'piscineds',
+            'user': 'mservage',
+            'password': 'mysecretpassword'
+        }
+        csv_folder = '../customer'
+        # ** unpack the dictionary to pass as keyword arguments*
+        # **postgre_connexion reviens a host=localhost, port=5432, ...
+        conn = connect(**postgre_connexion)
+        for file in listdir(csv_folder):
+            full_path = path.join(csv_folder, file)
+            if not path.isfile(full_path) or not file.endswith('.csv'):
+                continue
+            create_table_from_csv(full_path, conn)
+            break  # according to the subject, we only need to process one CSV file
+        conn.close()
+    except Exception as e:
+        print(f'An error occurred: {e}')
 
 
 if __name__ == '__main__':
