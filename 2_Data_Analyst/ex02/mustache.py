@@ -50,13 +50,12 @@ def main():
     plt.show()
 
     # 📈 Graphique 2 : same Boxplot without flier
-
     boxplot(
         x=df["price"],
         flierprops=None,
-        medianprops=medianprops,
+        medianprops=dict(color='grey', linewidth=1),
         linewidth=1,
-        color="black",
+        color="lightgreen",
         showfliers=False
     )
     plt.gca().set_facecolor("#f2f2f2")
@@ -66,8 +65,34 @@ def main():
     plt.tight_layout()
     plt.show()
 
+    # 📈 Graphique 3 : Boxplot du prix moyen du panier par utilisateur (avec outliers filtrés)
+    avg_basket_per_user = df.groupby("user_id")["price"].mean()
+    # Calcul des bornes IQR pour retirer les valeurs trop éloignées (gros paniers aberrants)
+    q1 = avg_basket_per_user.quantile(0.25)
+    q3 = avg_basket_per_user.quantile(0.75)
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
 
-    # 📈 Graphique 3 : IQR
+    # Filtrage
+    avg_filtered = avg_basket_per_user[
+        (avg_basket_per_user >= lower_bound) & (avg_basket_per_user <= upper_bound)
+    ]
+
+    # Boxplot
+    boxplot(
+        x=avg_filtered,
+        flierprops=flierprops,
+        medianprops=dict(color='grey', linewidth=1),
+        linewidth=1,
+        color="lightblue"
+    )
+    plt.gca().set_facecolor("#f2f2f2")
+    plt.grid(axis='x', color='white', linestyle='-', linewidth=1)
+    plt.tick_params(axis='y', left=False, labelleft=False)
+    plt.xlabel("Average basket price per user (filtered)")
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
