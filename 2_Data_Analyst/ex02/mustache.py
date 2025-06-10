@@ -26,6 +26,7 @@ def main():
     print(f"{'75% (Q3)':<15}{df['price'].quantile(0.75):>12.6f}")
     print(f"{'max':<15}{df['price'].max():>12.6f}")
 
+    # 📈 Graphique 1 : Boxplot
     flierprops = dict(
         marker='D',
         color='black',
@@ -48,31 +49,25 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    # 📈 Graphique 2 : IQR
+    # 📈 Graphique 2 : same Boxplot without flier
 
-    prices = df["price"].dropna()
-
-    fig, ax = plt.subplots(figsize=(12, 5))
-
-    ax.boxplot(
-        prices,
-        vert=False,
-        showfliers=False,
-        patch_artist=True,
-        boxprops=dict(facecolor='mediumseagreen', edgecolor='black'),
-        medianprops=dict(color='black', linewidth=1),
-        whiskerprops=dict(color='black'),
-        capprops=dict(color='black')
+    boxplot(
+        x=df["price"],
+        flierprops=None,
+        medianprops=medianprops,
+        linewidth=1,
+        color="black",
+        showfliers=False
     )
-
-    ax.set_xlim(-0.5, 13)
-    ax.set_facecolor("#f2f2f2")
-    ax.grid(axis='x', color='white', linestyle='-', linewidth=1)
-    ax.tick_params(axis='x', bottom=True, labelbottom=True)
-    ax.tick_params(axis='y', left=False, labelleft=False)
-    ax.set_xlabel("Price")
+    plt.gca().set_facecolor("#f2f2f2")
+    plt.grid(axis='x', color='white', linestyle='-', linewidth=1)
+    plt.tick_params(axis='y', left=False, labelleft=False)
+    plt.xlabel("Price")
     plt.tight_layout()
     plt.show()
+
+
+    # 📈 Graphique 3 : IQR
 
 
 if __name__ == "__main__":
