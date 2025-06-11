@@ -1,5 +1,5 @@
 from matplotlib import dates
-from pandas import isna, read_sql, to_datetime
+import pandas as pd
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 
@@ -20,8 +20,8 @@ def main():
     AND event_time BETWEEN '2022-10-01' AND '2023-02-28';
     """
 
-    df = read_sql(query, engine)
-    df["event_time"] = to_datetime(df["event_time"])
+    df = pd.read_sql(query, engine)
+    df["event_time"] = pd.to_datetime(df["event_time"])
     df = df.set_index("event_time")
 
     # 📈 Graphique 1 : courbe du nombre de clients par jour
@@ -56,41 +56,32 @@ def main():
     plt.tight_layout()
 
     # 🌈 Graphique 3 : courbe avec remplissage — prix moyen par jour
-    start = to_datetime("2022-10-01")
-    end = to_datetime("2023-02-28")
+    # 1. Nettoyage des données
+    df = df[df["event_type"] == "purchase"]
+    df["event_time"] = pd.to_datetime(df["event_time"])
+    df = df.set_index("event_time")  # indispensable pour resample
 
-    # 1. Resample
-    avg_price_per_day = df.resample("D")["price"].mean()
+    # 2. Définir les bornes de dates
+    start = pd.to_datetime("2022-10-01")
+    end = pd.to_datetime("2023-02-28")
 
-    # 2. Troncature stricte à gauche et à droite
-    avg_price_per_day = avg_price_per_day.loc[
-        (avg_price_per_day.index >= start) & (avg_price_per_day.index <= end)
-    ]
+    # 3. Calcul de la moyenne des dépenses par jour (TOUS utilisateurs confondus)
+    daily_avg = df["price"].resample("D").mean()
 
-    # 3. Tracé
+    # 4. Troncature stricte des dates
+    daily_avg = daily_avg.loc[start:end]
+
+    # 5. Tracé
     plt.figure(figsize=(10, 4))
-    plt.fill_between(
-        avg_price_per_day.index,
-        avg_price_per_day.values,
-        where=~isna(avg_price_per_day.values),
-        interpolate=True,
-        alpha=0.4,
-        color="steelblue"
-    )
+    plt.fill_between(daily_avg.index, daily_avg.values, where=~daily_avg.isna(), alpha=0.4, color="steelblue")
 
-    # 4. Axe X — MAINTENANT on verrouille
-    plt.xlim(start, end)
-
-    # 5. Mois bien formatés
+    plt.xlim(start, pd.to_datetime("2023-02-28"))
     plt.gca().xaxis.set_major_locator(dates.MonthLocator())
     plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%b'))
-    plt.xlim(start, to_datetime("2023-02-26 23:59:59"))
 
     plt.ylabel("Average spend/customers in ₳")
     plt.grid(True)
     plt.tight_layout()
-
-    # Affichage de tous les graphiques
     plt.show()
 
 
