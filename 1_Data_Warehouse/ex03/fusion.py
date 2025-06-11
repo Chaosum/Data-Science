@@ -40,12 +40,19 @@ def main():
 
     print("Fusion of data from 'items' into 'customers'...")
     cur.execute("""
-        UPDATE customers
-        SET category_id = items.category_id,
-            category_code = items.category_code,
-            brand = items.brand
+    UPDATE customers
+    SET category_id = sub.category_id,
+        category_code = sub.category_code,
+        brand = sub.brand
+    FROM (
+        SELECT DISTINCT ON (product_id) *
         FROM items
-        WHERE customers.product_id = items.product_id;
+        ORDER BY product_id,
+                category_id IS NULL,  -- TRUE (1) pour NULL, FALSE (0) sinon → les non-NULL passent en premier
+                category_code IS NULL,
+                brand IS NULL
+    ) AS sub
+    WHERE customers.product_id = sub.product_id;
     """)
 
     conn.commit()

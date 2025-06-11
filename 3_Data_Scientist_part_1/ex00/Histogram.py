@@ -22,8 +22,7 @@ def main():
 		plt.legend(fontsize=6)
 	plt.tight_layout()
 	plt.show()
-
-	# Lire le fichier CSV
+	# graphique 2 : overlay des knights par feature
 	df = pd.read_csv("../data/Train_knight.csv")
 
 	features = df.columns[:-1] 
@@ -32,7 +31,6 @@ def main():
 	# Choisir un nombre de lignes / colonnes pour les subplots
 	n_cols = 5
 	n_rows = (n_features // n_cols) + (n_features % n_cols > 0)  # arrondi supérieur
-	# graphique 2 : separate jedi knights
 	plt.figure(figsize=(10, 10))
 
 	for i, col in enumerate(features):
