@@ -16,7 +16,7 @@ def plot_confusion_matrix(tp, fn, fp, tn):
         "custom", ["purple", "blue","green","yellow"]
     )
     sns.heatmap(matrix, annot=True, fmt="d", cmap=custom_cmap, 
-                xticklabels=labels, yticklabels=labels)
+                xticklabels=labels, yticklabels=labels, alpha=0.8)
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
     plt.title("Confusion Matrix")
