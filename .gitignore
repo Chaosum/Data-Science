@@ -6,3 +6,5 @@
 /0_Data_engineer/database/*
 *.csv
 *.json
+**__pychache__/
+**/venv/

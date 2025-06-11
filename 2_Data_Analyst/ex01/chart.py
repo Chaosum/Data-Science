@@ -31,7 +31,6 @@ def main():
         figsize=(10, 4)
         )
 
-    # Remplace %b sur tous les jours par une tick par mois
     plt.gca().xaxis.set_major_locator(dates.MonthLocator())
     plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%b'))
     plt.xlabel("")
@@ -41,8 +40,6 @@ def main():
 
     # 📊 Graphique 2 : barres — total des ventes par mois en millions ₳
     monthly_df = df.resample("ME")["price"].sum() / 1_000_000
-
-    # On crée un DataFrame pour pouvoir relabel proprement
     monthly_df.index = monthly_df.index.strftime('%b')  # 'Oct', 'Nov', ...
 
     plt.figure()
@@ -55,31 +52,22 @@ def main():
     plt.grid(axis="y")
     plt.tight_layout()
 
-    # 🌈 Graphique 3 : courbe avec remplissage — prix moyen par jour
-    # 1. Nettoyage des données
-    df = df[df["event_type"] == "purchase"]
-    df["event_time"] = pd.to_datetime(df["event_time"])
-    df = df.set_index("event_time")  # indispensable pour resample
-
-    # 2. Définir les bornes de dates
+    # 🌈 Graphique 3 : courbe avec remplissage
+    df["date"] = df.index.date
+    daily_user_spend = df.groupby(["date", "user_id"])["price"].sum().reset_index()
+    avg_basket_per_day = daily_user_spend.groupby("date")["price"].mean()
+    avg_basket_per_day.index = pd.to_datetime(avg_basket_per_day.index)
     start = pd.to_datetime("2022-10-01")
     end = pd.to_datetime("2023-02-28")
-
-    # 3. Calcul de la moyenne des dépenses par jour (TOUS utilisateurs confondus)
-    daily_avg = df["price"].resample("D").mean()
-
-    # 4. Troncature stricte des dates
-    daily_avg = daily_avg.loc[start:end]
-
-    # 5. Tracé
+    avg_basket_per_day = avg_basket_per_day.loc[start:end]
     plt.figure(figsize=(10, 4))
-    plt.fill_between(daily_avg.index, daily_avg.values, where=~daily_avg.isna(), alpha=0.4, color="steelblue")
+    plt.fill_between(avg_basket_per_day.index, avg_basket_per_day.values, alpha=0.4, color="steelblue")
 
-    plt.xlim(start, pd.to_datetime("2023-02-28"))
+    plt.xlim(start, end)
     plt.gca().xaxis.set_major_locator(dates.MonthLocator())
     plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%b'))
 
-    plt.ylabel("Average spend/customers in ₳")
+    plt.ylabel("Average basket per user in ₳")
     plt.grid(True)
     plt.tight_layout()
     plt.show()

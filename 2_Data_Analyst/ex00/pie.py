@@ -26,7 +26,7 @@ def main():
         startangle=140
     )
     plt.title("Répartition des activités des utilisateurs")
-    plt.axis("equal")  # cercle parfait
+    plt.axis("equal")
     plt.show()
 
 
