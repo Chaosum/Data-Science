@@ -26,7 +26,7 @@ def plot_scatter_std(df, x, y):
 	plt.show()
 
 def main():
-	train_df = pd.read_csv("../data/Train_knight.csv")
+	train_df = pd.read_csv("./data/Train_knight.csv")
 	train_df.columns = train_df.columns.str.strip()
 	train_df["knight"] = train_df["knight"].map({"Jedi": 1, "Sith": 0})
 

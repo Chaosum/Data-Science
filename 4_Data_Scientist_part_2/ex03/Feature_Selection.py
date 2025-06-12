@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
@@ -44,30 +45,36 @@ def main():
     VIF measures multicollinearity: whether a feature is redundant with the others.
     """
     # Chargement du dataset
-    df = pd.read_csv("../data/Train_knight.csv")
+    filePath = "./data/Train_knight.csv"
+    if not os.path.isfile(filePath):
+        print("File not found in the data folder.")
+        return
+    try:
+        df = pd.read_csv(filePath)
 
-    # Séparation des features
-    X = df.drop(columns=["knight"])
+        # Séparation des features
+        X = df.drop(columns=["knight"])
 
-    # Standardisation
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+        # Standardisation
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
 
-    X_df = pd.DataFrame(X_scaled, columns=X.columns)
+        X_df = pd.DataFrame(X_scaled, columns=X.columns)
 
-    raw_vif = compute_vif(X_df)
-    print("pre filter")
-    print(f"{'':>15}{'VIF':>15}{'Tolerance':>15}")
-    for row in raw_vif.sort_values("VIF", ascending=False).itertuples(index=False):
-        print(f"{row.feature:15}{row.VIF:15.6f}{row.Tolerance:15.6f}")
-    print()
-    # Étape 2-3 : VIF - filtering
-    final_vif = drop_high_vif_features(X_df)
-    print("filtered")
-    print(f"{'':>15}{'VIF':>15}{'Tolerance':>15}")
-    for row in final_vif.sort_values("VIF", ascending=False).itertuples(index=False):
-        print(f"{row.feature:15}{row.VIF:15.6f}{row.Tolerance:15.6f}")
-
+        raw_vif = compute_vif(X_df)
+        print("VIF before filtering:")
+        print(f"{'':>15}{'VIF':>15}{'Tolerance':>15}")
+        for row in raw_vif.sort_values("VIF", ascending=False).itertuples(index=False):
+            print(f"{row.feature:15}{row.VIF:15.6f}{row.Tolerance:15.6f}")
+        print()
+        # Étape 2-3 : VIF - filtering
+        final_vif = drop_high_vif_features(X_df)
+        print("VIF after filtering:")
+        print(f"{'':>15}{'VIF':>15}{'Tolerance':>15}")
+        for row in final_vif.sort_values("VIF", ascending=False).itertuples(index=False):
+            print(f"{row.feature:15}{row.VIF:15.6f}{row.Tolerance:15.6f}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

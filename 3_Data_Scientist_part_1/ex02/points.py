@@ -49,8 +49,8 @@ def plot_feature_pairs(train_df, test_df, x, y, w, z):
 	plt.show()
 
 def main():
-	train_df = pd.read_csv("../data/Train_knight.csv")
-	test_df = pd.read_csv("../data/Test_knight.csv")
+	train_df = pd.read_csv("./data/Train_knight.csv")
+	test_df = pd.read_csv("./data/Test_knight.csv")
 
 	train_df.columns = train_df.columns.str.strip()
 	test_df.columns = test_df.columns.str.strip()

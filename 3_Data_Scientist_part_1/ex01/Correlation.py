@@ -1,7 +1,7 @@
 import pandas as pd
 
 def main():
-	df = pd.read_csv("../data/Train_knight.csv")
+	df = pd.read_csv("./data/Train_knight.csv")
 	df.columns = df.columns.str.strip()
 	df["knight"] = df["knight"].map({"Jedi": 1, "Sith": 0})
 

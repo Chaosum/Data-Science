@@ -3,7 +3,7 @@ import pandas as pd
 
 def main():
 	# Lire le fichier CSV
-	df = pd.read_csv("../data/Test_knight.csv")
+	df = pd.read_csv("./data/Test_knight.csv")
 	
 	features = df.columns
 	n_features = len(features)
@@ -22,7 +22,7 @@ def main():
 		plt.legend(fontsize=6)
 		plt.tight_layout()
 	# graphique 2 : overlay des knights par feature
-	df = pd.read_csv("../data/Train_knight.csv")
+	df = pd.read_csv("./data/Train_knight.csv")
 
 	features = df.columns[:-1] 
 	n_features = len(features)
