@@ -38,7 +38,7 @@ def main():
 	print(std_df.head(1))
 
 	# On réutilise le scatter plot : Empowered vs Prescience
-	plot_scatter_std(std_df, "Midi-chlorien", "Push")
+	plot_scatter_std(std_df, "Deflection", "Survival")
 
 if __name__ == "__main__":
 	main()

@@ -1,21 +1,14 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 
 
 def plot_confusion_matrix(tp, fn, fp, tn):
-    matrix = np.array([[tp, fn],
-                       [fp, tn]])
-
     labels = ["0", "1"]
 
     plt.figure(figsize=(5, 4))
-    custom_cmap = LinearSegmentedColormap.from_list(
-        "custom", ["purple", "blue","green","yellow"]
-    )
-    sns.heatmap(matrix, annot=True, fmt="d", cmap=custom_cmap, 
+    sns.heatmap([[tp, fn],[fp, tn]], annot=True, fmt="d", cmap="viridis",
                 xticklabels=labels, yticklabels=labels, alpha=0.8)
     plt.xlabel("Predicted")
     plt.ylabel("Actual")

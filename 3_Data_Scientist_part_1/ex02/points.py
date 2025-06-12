@@ -19,7 +19,7 @@ def plot_feature_pairs(train_df, test_df, x, y, w, z):
 	plt.subplot(2, 2, 1)
 	for label in [0, 1]:
 		sub = train_df[train_df["knight"] == label]
-		plt.scatter(sub[x], sub[y], alpha=0.6, label="Sith" if label == 0 else "Jedi")
+		plt.scatter(sub[x], sub[y], c="blue" if label == 0 else "red", alpha=0.6, label="Sith" if label == 0 else "Jedi")
 	plt.ylabel(y)
 	plt.legend()
 
@@ -34,7 +34,7 @@ def plot_feature_pairs(train_df, test_df, x, y, w, z):
 	plt.subplot(2, 2, 2)
 	for label in [0, 1]:
 		sub = train_df[train_df["knight"] == label]
-		plt.scatter(sub[w], sub[z], alpha=0.6, label="Sith" if label == 0 else "Jedi")
+		plt.scatter(sub[w], sub[z], alpha=0.6, c="blue" if label == 0 else "red" , label="Sith" if label == 0 else "Jedi")
 	plt.ylabel(z)
 	plt.legend()
 
@@ -60,8 +60,8 @@ def main():
 	# Choisis tes features ici :
 	x = "Empowered"
 	y = "Prescience"
-	w = "Midi-chlorien"
-	z = "Push"
+	w = "Deflection"
+	z = "Survival"
 
 	plot_feature_pairs(train_df, test_df, x=x, y=y, w=w, z=z)
 

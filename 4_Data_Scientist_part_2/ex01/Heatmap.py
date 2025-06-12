@@ -14,10 +14,7 @@ def main():
 	corr = df[features].corrwith(df["knight"]).sort_values(ascending=False)
 	# Make a Heatmap to see the Correlation Coefficient between the data
 	plt.figure(figsize=(10, 8))
-	custom_cmap = LinearSegmentedColormap.from_list(
-	"custom", [ "black", "red", "white"]
-    )
-	sns.heatmap(df[features].corr(), annot=False, cmap=custom_cmap, cbar_kws={'label': 'Correlation Coefficient'})
+	sns.heatmap(df[features].corr(), annot=False, cmap="inferno", cbar_kws={'label': 'Correlation Coefficient'})
 	plt.show()
 
 if __name__ == "__main__":

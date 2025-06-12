@@ -18,10 +18,9 @@ def main():
 	for i, col in enumerate(features):
 		plt.subplot(n_rows, n_cols, i + 1)
 		plt.title(col)
-		plt.hist(df[col], bins=20, alpha=0.5, color='green', label='Knights')
+		plt.hist(df[col], bins=40, alpha=0.5, color='green', label='Knights')
 		plt.legend(fontsize=6)
-	plt.tight_layout()
-	plt.show()
+		plt.tight_layout()
 	# graphique 2 : overlay des knights par feature
 	df = pd.read_csv("../data/Train_knight.csv")
 
@@ -37,13 +36,12 @@ def main():
 		plt.subplot(n_rows, n_cols, i + 1)
 		for label in df['knight'].unique():
 			subset = df[df['knight'] == label]
-			plt.hist(subset[col], bins=20, alpha=0.5, label=label)
+			plt.hist(subset[col], color="blue" if label == "Jedi" else "red", bins=35, alpha=0.5, label=label)
 		plt.title(col)
 		plt.legend()
-
-	plt.tight_layout()
+		plt.tight_layout()
 	plt.show()
-		
+
 
 if __name__ == "__main__":
 	main()

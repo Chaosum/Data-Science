@@ -1,9 +1,17 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import sys
+import os
 
 def main():
 	# Lire le fichier d'origine
-	df = pd.read_csv("../data/Train_knight.csv")
+	if len(sys.argv) != 2:
+		print("Usage: python split.py <path_to_csv>")
+		return
+	if not os.path.isfile(sys.argv[1]):
+		print(f"Erreur : le fichier {sys.argv[1]} n'existe pas.")
+		return
+	df = pd.read_csv(sys.argv[1])
 	df.columns = df.columns.str.strip()
 
 	# Split 80% entraînement, 20% validation
